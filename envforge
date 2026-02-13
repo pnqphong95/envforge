@@ -33,100 +33,167 @@ DEFAULT_BUNDLE="$BUNDLES_DIR/default.yaml"
 # Function to display usage
 usage() {
     cat <<EOF
-Usage: envforge [OPTIONS] [BUNDLE_FILE]
-       envforge upgrade
+Usage: envforge <COMMAND> [OPTIONS]
 
-env-forge - Universal Environment Scaffolding
+envforge - Universal Environment Scaffolding
 
 COMMANDS:
-    upgrade             Upgrade env-forge to the latest version
+    up          Execute a bundle (default: bundles/default.yaml)
+    upgrade     Manage env-forge versions
+    version     Show current version
+    help        Show this help message
 
-ARGUMENTS:
-    BUNDLE_FILE         Path to the bundle YAML file (default: bundles/default.yaml)
-                        Can be absolute path or relative to current directory
+Run 'envforge <COMMAND> --help' for more information on a command.
 
-OPTIONS:
-    --list, -l          List tools in the bundle
-    --help, -h          Show this help message
-    --dry-run           Show what would be installed without actually installing
-    --force             Run all tools in bundle, ignoring completion state
-    --reset-state       Clear the state for the specified bundle
-
-EXAMPLES:
-    envforge                      # Install default bundle
-    envforge my-bundle.yaml       # Install custom bundle from current directory
-    envforge /path/to/bundle.yaml # Install bundle from absolute path
-    envforge --list               # List tools in default bundle
-    envforge --dry-run            # Show installation plan
-    envforge --force              # Force re-installation
-    envforge upgrade              # Upgrade env-forge to latest version
-
-TOOL SCRIPTS:
-    All tools are located in: $TOOLS_DIR
-    Custom bundles can reference these tools from any location.
-
-DOCUMENTATION:
-    https://github.com/pnqphong95/env-forge
+examples:
+    envforge up                       # Run default bundle
+    envforge up --env my-bundle.yaml  # Run specific bundle
+    envforge upgrade                  # Interactive upgrade
+    envforge upgrade latest           # Upgrade to latest version
+    envforge version                  # Show version
 EOF
 }
 
-# Parse command line arguments
-DRY_RUN=false
-SHOW_LIST=false
-FORCE_RUN=false
-RESET_STATE=false
-BUNDLE_ARGS=()
+version_command() {
+    if [ -d "$SCRIPT_DIR/.git" ]; then
+        git -C "$SCRIPT_DIR" describe --tags 2>/dev/null || git -C "$SCRIPT_DIR" rev-parse --short HEAD 2>/dev/null || echo "unknown-dev"
+    else
+        echo "unknown-version"
+    fi
+}
 
-while [[ $# -gt 0 ]]; do
-    case $1 in
-        upgrade)
-            upgrade_envforge
-            exit 0
-            ;;
-        --list|-l)
-            SHOW_LIST=true
-            shift
-            ;;
-        --help|-h)
-            usage
-            exit 0
-            ;;
-        --dry-run)
-            DRY_RUN=true
-            export DRY_RUN=true # Export for subprocesses
-            shift
-            ;;
-        --force)
-            FORCE_RUN=true
-            shift
-            ;;
-        --reset-state)
-            RESET_STATE=true
-            shift
-            ;;
-        -*)
-            log_error "Unknown option: $1"
-            usage
-            exit 1
-            ;;
-        *)
-            BUNDLE_ARGS+=("$1")
-            shift
-            ;;
-    esac
-done
+up_command() {
+    local show_help=false
+    local target_bundle="$DEFAULT_BUNDLE"
+    export DRY_RUN=false
+    export FORCE_RUN=false
+    local show_list=false
+    local show_list_tool=false
+    local reset_state=false
 
-# Resolve bundle file path
-if [ ${#BUNDLE_ARGS[@]} -ge 1 ]; then
-    TARGET_BUNDLE=$(resolve_bundle_path "${BUNDLE_ARGS[0]}")
-else
-    TARGET_BUNDLE="$DEFAULT_BUNDLE"
-fi
+    # Parse args for 'up' command
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            --help|-h)
+                show_help=true
+                shift
+                ;;
+            --env)
+                if [ -n "$2" ] && [[ "$2" != -* ]]; then
+                    target_bundle=$(resolve_bundle_path "$2")
+                    shift 2
+                else
+                    log_error "Error: --env requires a bundle file argument."
+                    exit 1
+                fi
+                ;;
+            --dry-run)
+                export DRY_RUN=true
+                shift
+                ;;
+            --force)
+                export FORCE_RUN=true
+                shift
+                ;;
+            --list|-l)
+                show_list=true
+                shift
+                ;;
+            --list-tool)
+                show_list_tool=true
+                shift
+                ;;
+            --reset-state)
+                reset_state=true
+                shift
+                ;;
+             -*)
+                log_error "Unknown option: $1"
+                echo "Use 'envforge up --help' for usage."
+                exit 1
+                ;;
+            *)
+                # If argument is provided without --env, treat as bundle file if it looks like one, or error?
+                # The requirement says:
+                # envforge up -> execute default bundle file.
+                # envforge up --env <bundle file name> -> execute bundle under bundles folder.
+                # It doesn't explicitly say "envforge up <bundle>" needs to be supported, but previous version supported it.
+                # Let's stick strictly to requirements: "--env <bundle file name>"
+                log_error "Unknown argument: $1. Did you mean '--env $1'?"
+                exit 1
+                ;;
+        esac
+    done
 
-# Main execution
-if [ "$RESET_STATE" = true ]; then
-    reset_state "$TARGET_BUNDLE"
+    if [ "$show_help" = true ]; then
+        cat <<EOF
+Usage: envforge up [OPTIONS]
+
+Options:
+    --env <BUNDLE>      Specify bundle file (default: default.yaml)
+    --dry-run           Show what would be installed without installing
+    --force             Run all tools in bundle, ignoring completion state
+    --list, -l          List available bundles in bundles/ directory
+    --list-tool         List available tools in tools/ directory
+    --reset-state       Clear the state for the specified bundle
+    --help, -h          Show this help message
+EOF
+        return 0
+    fi
+
+    if [ "$show_list" = true ]; then
+        log_info "Available Bundles:"
+        if [ -d "$BUNDLES_DIR" ]; then
+            find "$BUNDLES_DIR" -maxdepth 1 -name "*.yaml" -exec basename {} .yaml \; | sort | sed 's/^/- /'
+        else
+            log_warning "Bundles directory not found."
+        fi
+        return 0
+    fi
+
+    if [ "$show_list_tool" = true ]; then
+        log_info "Available Tools:"
+        if [ -d "$TOOLS_DIR" ]; then
+             find "$TOOLS_DIR" -maxdepth 1 -name "*.sh" -exec basename {} .sh \; | sort | sed 's/^/- /'
+        else
+            log_warning "Tools directory not found."
+        fi
+        return 0
+    fi
+
+    if [ "$reset_state" = true ]; then
+        reset_state "$target_bundle"
+        return 0
+    fi
+
+    install_bundle "$target_bundle"
+}
+
+# Main dispatcher
+if [ $# -eq 0 ]; then
+    usage
     exit 0
 fi
 
-install_bundle "$TARGET_BUNDLE"
+CMD=$1
+shift
+
+case "$CMD" in
+    version)
+        version_command
+        ;;
+    upgrade)
+        upgrade_envforge "$@"
+        ;;
+    up)
+        up_command "$@"
+        ;;
+    help|--help|-h)
+        usage
+        ;;
+    *)
+        log_error "Unknown command: $CMD"
+        usage
+        exit 1
+        ;;
+esac

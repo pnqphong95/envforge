@@ -73,20 +73,28 @@ source ~/.bashrc
 ### Global Command (After Bootstrap Installation)
 
 ```bash
-envforge                      # Install default bundle
-envforge --list               # List tools in default bundle
-envforge my-bundle.yaml       # Use custom bundle from current directory
-envforge /path/to/bundle.yaml # Use bundle from anywhere
-envforge --dry-run            # Preview without executing
-envforge --force              # Force re-installation
+# Core Commands
+envforge up                       # Install default bundle
+envforge up --env my-bundle.yaml  # Install specific bundle
+envforge version                  # Show current version
+envforge upgrade                  # Interactive upgrade
+envforge upgrade latest           # Upgrade to latest version
+envforge upgrade 0.9.3            # Upgrade to specific version
+
+# Utility Flags (for 'up' command)
+envforge up --list                # List all available bundles
+envforge up --list-tool           # List all available tools
+envforge up --dry-run             # Preview without executing
+envforge up --force               # Force re-installation
+envforge up --reset-state         # Clear state for bundle
 ```
 
 ### Direct Execution (Development)
 
 ```bash
 cd ~/.env-forge
-./envforge --list
-./envforge
+./envforge up --list
+./envforge up
 ```
 
 ## Directory Structure
@@ -174,27 +182,34 @@ fi
 
 ## Command Reference
 
-### install.sh Options
+### `envforge up` Options
 ```bash
-./install.sh [OPTIONS] [BUNDLE_FILE]
+envforge up [OPTIONS]
 
 OPTIONS:
-  --list, -l        List tools in bundle (with execution order)
+  --env <BUNDLE>    Specify bundle file (default: default.yaml)
+  --list, -l        List available bundles
+  --list-tool       List available tools
   --dry-run         Preview without executing
   --force           Ignore state, re-run all tools
   --reset-state     Clear completion state for bundle
   --help, -h        Show help message
 
 EXAMPLES:
-  ./install.sh                      # Install default bundle
-  ./install.sh bundles/webdev.yaml  # Install custom bundle
-  ./install.sh --list               # Show default bundle contents
-  ./install.sh --force              # Force re-installation
+  envforge up                       # Install default bundle
+  envforge up --env bundles/webdev.yaml  # Install custom bundle
+  envforge up --list                # List available bundles
+  envforge up --force               # Force re-installation
 ```
 
-### Standalone Tool Execution
+### `envforge upgrade` Options
 ```bash
-./tools/01_base.sh     # Run specific tool directly
+envforge upgrade [latest|VERSION]
+
+EXAMPLES:
+  envforge upgrade                  # Interactive upgrade (fetches remote versions)
+  envforge upgrade latest           # Upgrade to latest release
+  envforge upgrade v0.9.3           # Upgrade to specific tag
 ```
 
 ## Requirements
@@ -221,8 +236,9 @@ State is tracked per-bundle in `.install_state/<bundle_name>/`:
 
 To reset state:
 ```bash
-./install.sh --reset-state                 # Reset current bundle
-rm -rf .install_state/                     # Reset all bundles
+envforge up --reset-state                 # Reset default bundle
+envforge up --env webdev --reset-state    # Reset specific bundle
+rm -rf .install_state/                    # Reset all bundles
 ```
 
 ## License

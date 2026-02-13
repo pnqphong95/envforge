@@ -165,7 +165,15 @@ resolve_bundle_path() {
 }
 
 # Upgrade env-forge to latest version
+# Upgrade env-forge to latest version or specific tag
 upgrade_envforge() {
+    local target_version="$1"
+    
+    if [[ "$target_version" == "-h" ]] || [[ "$target_version" == "--help" ]]; then
+        log_info "Usage: envforge upgrade [latest|VERSION]"
+        return 0
+    fi
+
     log_info "Starting env-forge upgrade process..."
     
     # Check if we're in a git repository
@@ -201,48 +209,68 @@ upgrade_envforge() {
         exit 1
     fi
     
-    # Get latest version (last non-empty line)
-    local latest_version
-    latest_version=$(echo "$versions_content" | grep -v '^$' | tail -n 1)
+    # Filter empty lines
+    local available_versions
+    available_versions=$(echo "$versions_content" | grep -v '^$')
     
-    if [ -z "$latest_version" ]; then
-        log_error "No version found in .versions file."
+    if [ -z "$available_versions" ]; then
+        log_error "No versions found in remote .versions file."
         exit 1
     fi
     
-    log_info "Latest available version: $latest_version"
+    # Get latest version (last line)
+    local latest_version
+    latest_version=$(echo "$available_versions" | tail -n 1)
     
-    # Get current version/commit
-    local current_version
-    current_version=$(git -C "$ENV_FORGE_HOME" describe --tags --exact-match 2>/dev/null || git -C "$ENV_FORGE_HOME" rev-parse --short HEAD 2>/dev/null || echo "unknown")
-    
-    log_info "Current version: $current_version"
-    
-    # Check if already at latest version
-    if [ "$current_version" = "$latest_version" ]; then
-        log_success "Already at latest version ($latest_version). No upgrade needed."
-        return 0
+    # Determine target version
+    if [ -z "$target_version" ]; then
+        # Interactive mode
+        log_info "Available versions:"
+        echo "$available_versions" | sed 's/^/  /'
+        echo ""
+        read -p "Enter version to install (default: $latest_version): " input_version
+        if [ -z "$input_version" ]; then
+            target_version="$latest_version"
+        else
+            target_version="$input_version"
+        fi
+    elif [ "$target_version" = "latest" ]; then
+        target_version="$latest_version"
     fi
+
+    # Normalize version (add 'v' prefix if missing and needed)
+    # Check if the target version exists in the available versions list?
+    # Or just try to checkout it. The user might want to install a tag not in .versions (e.g. older ones not listed? or dev tags?)
+    # But the requirement is "The version should always look from remote url". 
+    # Let's verify if the chosen version is in the list, unless it's a direct checkout attempt which we verify via git.
     
-    # Fetch tags
+    # Fetch tags to ensure we can checkout
     log_info "Fetching tags..."
     if ! git -C "$ENV_FORGE_HOME" fetch --tags --quiet 2>/dev/null; then
         log_warning "Failed to fetch tags, but continuing..."
     fi
-    
-    # Check if target version exists
-    if ! git -C "$ENV_FORGE_HOME" rev-parse "$latest_version" >/dev/null 2>&1; then
-        log_error "Version $latest_version does not exist in the repository."
+
+    # Normalize version (add 'v' prefix if missing and needed)
+    if [[ ! "$target_version" =~ ^v ]]; then
+        if git -C "$ENV_FORGE_HOME" rev-parse "v$target_version" >/dev/null 2>&1; then
+            target_version="v$target_version"
+        fi
+    fi
+
+    # Verify version exists
+    if ! git -C "$ENV_FORGE_HOME" rev-parse "$target_version" >/dev/null 2>&1; then
+        log_error "Version '$target_version' not found in repository."
         exit 1
     fi
+
+    log_info "Upgrading to version $target_version..."
     
-    # Checkout the latest version
-    log_info "Upgrading to version $latest_version..."
-    if git -C "$ENV_FORGE_HOME" checkout "$latest_version" --quiet 2>/dev/null; then
-        log_success "Successfully upgraded to version $latest_version!"
+    # Checkout the version
+    if git -C "$ENV_FORGE_HOME" checkout "$target_version" --quiet 2>/dev/null; then
+        log_success "Successfully upgraded to version $target_version!"
         log_info "Please restart your shell or run: source ~/.bashrc"
     else
-        log_error "Failed to checkout version $latest_version."
+        log_error "Failed to checkout version $target_version."
         log_error "You may have local changes. Please commit or stash them first."
         exit 1
     fi
