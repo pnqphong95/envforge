@@ -1,0 +1,293 @@
+/*
+  Neo-Mint Glow Theme
+  A futuristic, vibrant aesthetic with glassmorphism and deep gradients.
+*/
+
+/* Import Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+:root {
+  /* 
+    Neo-Mint Palette  
+    Base: #00fa9a (SpringGreen) 
+  */
+  --ifm-color-primary: #00fa9a;
+  --ifm-color-primary-dark: #00e18b;
+  --ifm-color-primary-darker: #00d583;
+  --ifm-color-primary-darkest: #00af6c;
+  --ifm-color-primary-light: #1affab;
+  --ifm-color-primary-lighter: #26ffb0;
+  --ifm-color-primary-lightest: #4dffbf;
+
+  /* Typography */
+  --ifm-font-family-base: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, blinkmacsystemfont, 'Segoe UI', roboto, oxygen, ubuntu, cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  --ifm-line-height-base: 1.7;
+  /* Increased for readability */
+  --ifm-heading-font-weight: 700;
+
+  /* Minimalist Base Colors */
+  --ifm-background-color: #ffffff;
+  --ifm-font-color-base: #1e293b;
+  /* Slate-800 */
+  --ifm-color-emphasis-100: #f1f5f9;
+  /* Slate-100 */
+  --ifm-color-emphasis-200: #e2e8f0;
+  /* Slate-200 */
+
+  /* UI Elements */
+  --ifm-navbar-height: 4.5rem;
+  --ifm-global-radius: 12px;
+  --ifm-card-border-radius: 16px;
+
+  /* Code Blocks */
+  --docusaurus-highlighted-code-line-bg: rgba(0, 250, 154, 0.1);
+  --ifm-code-font-size: 95%;
+  --ifm-pre-border-radius: 12px;
+}
+
+[data-theme='dark'] {
+  /* 
+    Dark Mode Neo-Mint
+    Base: #4ade80 (Green-400 equivalent for softer glow)
+  */
+  --ifm-color-primary: #4ade80;
+  --ifm-color-primary-dark: #22c55e;
+  --ifm-color-primary-darker: #16a34a;
+  --ifm-color-primary-darkest: #15803d;
+  --ifm-color-primary-light: #86efac;
+  --ifm-color-primary-lighter: #bbf7d0;
+  --ifm-color-primary-lightest: #dcfce7;
+
+  /* Deep Space Background */
+  --ifm-background-color: #0f172a;
+  /* Slate-900 */
+  --ifm-background-surface-color: #1e293b;
+  /* Slate-800 */
+  --ifm-font-color-base: #e2e8f0;
+  /* Slate-200 */
+
+  --ifm-navbar-background-color: rgba(15, 23, 42, 0.7);
+  --ifm-footer-background-color: #020617;
+  /* Slate-950 */
+}
+
+/* --- GLASSMORPHISM NAVBAR --- */
+.navbar {
+  background-color: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: none;
+}
+
+[data-theme='dark'] .navbar {
+  background-color: rgba(15, 23, 42, 0.7);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.navbar__item {
+  font-weight: 600;
+  transition: all 0.2s ease;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+}
+
+.navbar__title {
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--ifm-color-primary-dark), var(--ifm-color-primary));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* --- GLOWING SIDEBAR --- */
+.theme-doc-sidebar-container {
+  border-right: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+[data-theme='dark'] .theme-doc-sidebar-container {
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.menu__link {
+  border-radius: 8px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  border-left: 3px solid transparent;
+}
+
+/* Active State Glow */
+.menu__link--active {
+  background: linear-gradient(90deg, rgba(0, 250, 154, 0.1) 0%, rgba(0, 250, 154, 0) 100%);
+  color: var(--ifm-color-primary-darkest);
+  border-left-color: var(--ifm-color-primary);
+  box-shadow: 0 0 15px rgba(0, 250, 154, 0.3);
+}
+
+[data-theme='dark'] .menu__link--active {
+  color: var(--ifm-color-primary-light);
+  background: linear-gradient(90deg, rgba(74, 222, 128, 0.15) 0%, rgba(74, 222, 128, 0) 100%);
+  box-shadow: 0 0 15px rgba(74, 222, 128, 0.2);
+}
+
+/* --- HERO MESH GRADIENT --- */
+.hero {
+  /* Mesh Gradient Background */
+  background-color: #f8fafc;
+  background-image:
+    radial-gradient(at 0% 0%, rgba(0, 250, 154, 0.3) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(19, 78, 74, 0.1) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(0, 250, 154, 0.1) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, rgba(255, 255, 255, 0.5) 0px, transparent 50%);
+  position: relative;
+  overflow: hidden;
+  padding: 8rem 0;
+  color: var(--ifm-font-color-base);
+  /* Ensure general text is dark */
+}
+
+.hero__subtitle {
+  font-size: 1.5rem;
+  color: var(--ifm-color-emphasis-800);
+  /* Darker for better contrast */
+  font-weight: 600;
+  /* Increased weight for legibility */
+  margin-bottom: 3rem;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+  /* Stronger light shadow for contrast */
+}
+
+[data-theme='dark'] .hero__subtitle {
+  color: var(--ifm-color-emphasis-200);
+  /* Light slate for dark mode */
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+[data-theme='dark'] .hero {
+  background-color: #0f172a;
+  background-image:
+    radial-gradient(at 0% 0%, rgba(74, 222, 128, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(19, 78, 74, 0.3) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(15, 23, 42, 0.5) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, rgba(74, 222, 128, 0.05) 0px, transparent 50%);
+}
+
+.hero__title {
+  font-size: 4.5rem;
+  letter-spacing: -0.04em;
+  background: linear-gradient(to right, var(--ifm-color-primary-dark), var(--ifm-color-primary), #134e4a);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 1.5rem;
+  filter: drop-shadow(0 0 20px rgba(0, 250, 154, 0.2));
+}
+
+[data-theme='dark'] .hero__title {
+  background: linear-gradient(to right, var(--ifm-color-primary-light), var(--ifm-color-primary), #2dd4bf);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* --- GLOWING BUTTON --- */
+.button--primary {
+  background: var(--ifm-color-primary);
+  color: #064e3b;
+  /* Dark Green Text */
+  border: none;
+  font-weight: 700;
+  padding: 1rem 2.5rem;
+  border-radius: 50px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 20px rgba(0, 250, 154, 0.4);
+}
+
+.button--primary:hover {
+  background: var(--ifm-color-primary-light);
+  transform: translateY(-2px);
+  box-shadow: 0 0 30px rgba(0, 250, 154, 0.6);
+  animation: pulse-glow 2s infinite;
+}
+
+@keyframes pulse-glow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(0, 250, 154, 0.7);
+  }
+
+  70% {
+    box-shadow: 0 0 0 10px rgba(0, 250, 154, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 250, 154, 0);
+  }
+}
+
+/* --- CODE BLOCKS & ADMONITIONS --- */
+.prism-code {
+  border-radius: 12px;
+  box-shadow: 0 0 0 1px rgba(0, 250, 154, 0.2), 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Admonition Customization */
+.alert {
+  border-radius: 12px;
+  border: none;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Info & Tip - Mint Theme */
+.alert--info,
+.alert--success {
+  background-color: rgba(0, 250, 154, 0.05);
+  border: 1px solid rgba(0, 250, 154, 0.3);
+}
+
+[data-theme='dark'] .alert--info,
+[data-theme='dark'] .alert--success {
+  background-color: rgba(74, 222, 128, 0.05);
+  border: 1px solid rgba(74, 222, 128, 0.2);
+}
+
+.alert--info svg,
+.alert--success svg {
+  fill: var(--ifm-color-primary-dark);
+}
+
+[data-theme='dark'] .alert--info svg,
+[data-theme='dark'] .alert--success svg {
+  fill: var(--ifm-color-primary);
+}
+
+/* Use thin mint left border for emphasis */
+.alert--info,
+.alert--success {
+  border-left: 4px solid var(--ifm-color-primary);
+}
+
+/* --- CARDS --- */
+.card {
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+[data-theme='dark'] .card {
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  border-color: var(--ifm-color-primary);
+  box-shadow: 0 10px 40px -10px rgba(0, 250, 154, 0.2);
+}
