@@ -1,0 +1,12 @@
+name: "Frontend Minimal Bundle"
+description: "Minimal setup for frontend development (Git, Node.js via nvm)"
+tools:
+  - http-tools:
+      # No dependencies
+  - git:
+      # No dependencies
+  - build-essential:
+      # No dependencies
+  - nvm:
+      depends_on:
+        - http-tools
